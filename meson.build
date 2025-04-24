@@ -447,7 +447,7 @@ else
     srcconf.set10('HAVE_STATIC_LIBCAP', false)
 endif
 
-libutil = cc.find_library('util', required: false)
+libutil = cc.find_library('c', required: false)
 
 if want_oss_fuzz
     srcconf.set10('FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION', true)
@@ -467,6 +467,10 @@ pkgconfig_libs += pam
 have = cc.has_function('fmemopen', prefix: '#include <stdio.h>', args: '-D_GNU_SOURCE')
 srcconf.set10('HAVE_FMEMOPEN', have)
 
+## Android
+have = cc.get_id().contains('clang') and cc.has_header('android/log.h')
+srcconf.set10('IS_BIONIC', have)
+
 have = cc.has_function('openpty', dependencies: libutil, prefix: '#include <pty.h>')
 srcconf.set10('HAVE_OPENPTY', have)
 if have
@@ -476,7 +480,8 @@ if have
     endif
 endif
 
-have = cc.has_function('pthread_setcancelstate', prefix: '#include <pthread.h>')
+## NDK doesn't implement thread_setcancelstate functions, and is only used as a placeholder here
+have = cc.has_function('pthread_kill', prefix: '#include <pthread.h>')
 srcconf.set10('HAVE_PTHREAD_SETCANCELSTATE', have)
 
 have = cc.has_function('rand_r')
@@ -590,6 +595,8 @@ decl_headers = '''
 #include <sys/stat.h>
 #include <linux/if_link.h>
 #include <linux/types.h>
+#include <linux/openat2.h>
+#include <linux/sched.h>
 '''
 
 foreach decl: [
@@ -777,7 +784,7 @@ found_headers = []
 missing_headers = []
 foreach tuple: [
     ['sys/resource.h'],
-    ['sys/memfd.h'],
+    ['linux/memfd.h'],
     ['sys/personality.h'],
     ['sys/pidfd.h'],
     ['sys/signalfd.h'],
@@ -924,7 +931,7 @@ pkg_config_file = pkgconfig.generate(liblxc,
     description: 'linux container tools',
     version: version_data.get('LXC_VERSION'),
     url: 'http://linuxcontainers.org',
-    libraries: '-lutil -lpthread -ldl',
+    libraries: '-c -ldl',
     libraries_private: pkgconfig_libs,
 )
 

@@ -1372,11 +1372,24 @@ static int do_start(void *data)
 	}
 
 	if (handler->conf->ttys.tty_names) {
+		const char *prefix = "tty_names = ";
+		if (strncmp(handler->conf->ttys.tty_names, prefix, strlen(prefix)) != 0) {
+			size_t new_len = strlen(prefix) + strlen(handler->conf->ttys.tty_names) + 1;
+			char *new_tty_names = (char *)malloc(new_len);
+			if (new_tty_names != NULL) {
+				sprintf(new_tty_names, "%s%s", prefix, handler->conf->ttys.tty_names);
+				handler->conf->ttys.tty_names = new_tty_names;
+			} else {
+				SYSERROR("Memory allocation failed for tty_names prefix.");
+				goto out_warn_father;
+			}
+		}
 		ret = putenv(handler->conf->ttys.tty_names);
 		if (ret < 0) {
 			SYSERROR("Failed to set environment variable for container ptys");
 			goto out_warn_father;
 		}
+		DEBUG("Successfully set environment variable for container ptys: %s", handler->conf->ttys.tty_names);
 	}
 
 	/* The container has been setup. We can now switch to an unprivileged

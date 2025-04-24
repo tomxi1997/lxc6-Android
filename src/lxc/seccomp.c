@@ -70,7 +70,7 @@ static int parse_config_v1(FILE *f, char *line, size_t *line_bufsz, struct lxc_c
 	return ret;
 }
 
-#if HAVE_DECL_SECCOMP_SYSCALL_RESOLVE_NAME_ARCH
+#if HAVE_DECL_SECCOMP_SYSCALL_RESOLVE_NAME_ARCH || IS_BIONIC
 static const char *get_action_name(uint32_t action)
 {
 	/* The upper 16 bits indicate the type of the seccomp action. */
@@ -295,7 +295,7 @@ on_error:
 }
 #endif
 
-#if HAVE_DECL_SECCOMP_SYSCALL_RESOLVE_NAME_ARCH
+#if HAVE_DECL_SECCOMP_SYSCALL_RESOLVE_NAME_ARCH || IS_BIONIC
 enum lxc_hostarch_t {
 	lxc_seccomp_arch_all = 0,
 	lxc_seccomp_arch_native,
