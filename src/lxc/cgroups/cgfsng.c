@@ -591,7 +591,11 @@ static bool cpuset1_cpus_initialize(int dfd_parent, int dfd_child,
 	int ret;
 	__u32 poss_last_set_bit = 0;
 
+#if !IS_BIONIC
 	posscpus = read_file_at(dfd_parent, "cpuset.cpus", PROTECT_OPEN, 0);
+#else
+	posscpus = read_file_at(dfd_parent, "cpus", PROTECT_OPEN, 0);
+#endif
 	if (!posscpus)
 		return log_error_errno(false, errno, "Failed to read file %d/cpuset.cpus", dfd_parent);
 
@@ -644,7 +648,11 @@ static bool cpuset1_cpus_initialize(int dfd_parent, int dfd_child,
 
 copy_parent:
 	if (!am_initialized) {
+#if !IS_BIONIC
 		ret = lxc_writeat(dfd_child, "cpuset.cpus", cpulist, strlen(cpulist));
+#else
+		ret = lxc_writeat(dfd_child, "cpus", cpulist, strlen(cpulist));
+#endif
 		if (ret < 0)
 			return log_error_errno(false, errno, "Failed to write cpu list to \"%d/cpuset.cpus\"", dfd_child);
 
@@ -670,12 +678,20 @@ static bool cpuset1_initialize(int dfd_base, int dfd_next)
 		return syserror_ret(false, "Failed to initialize cpuset.cpus");
 
 	/* Read cpuset.mems from parent... */
+#if !IS_BIONIC
 	bytes = lxc_readat(dfd_base, "cpuset.mems", mems, sizeof(mems));
+#elif
+	bytes = lxc_readat(dfd_base, "mems", mems, sizeof(mems));
+#endif
 	if (bytes < 0)
 		return syserror_ret(false, "Failed to read file %d(cpuset.mems)", dfd_base);
 
 	/* and copy to first cgroup in the tree... */
+#if !IS_BIONIC
 	bytes = lxc_writeat(dfd_next, "cpuset.mems", mems, bytes);
+#else
+	bytes = lxc_writeat(dfd_next, "mems", mems, bytes);
+#endif
 	if (bytes < 0)
 		return syserror_ret(false, "Failed to write %d(cpuset.mems)", dfd_next);
 
