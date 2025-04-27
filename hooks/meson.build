@@ -50,3 +50,9 @@ hook_programs = configure_file(
     input: 'ubuntu-cloud-prep',
     output: 'ubuntu-cloud-prep')
 install_data(join_paths(project_build_root, 'hooks/ubuntu-cloud-prep'), install_dir: lxchookdir)
+
+hook_programs = configure_file(
+    configuration: dummy_config_data,
+    input: 'android-network',
+    output: 'android-network')
+install_data(join_paths(project_build_root, 'hooks/android-network'), install_dir: lxchookdir)

@@ -1,0 +1,60 @@
+#!/bin/sh
+#
+# SPDX-License-Identifier: MIT
+#
+# The patch for Android network is a workaround for the
+# issue with the Android network stack.
+
+ip=/bin/ip
+
+if type route > /dev/null 2>&1; then
+    IPV6_RULE_ENABLE="true"
+else
+    IPV6_RULE_ENABLE="false"
+fi
+
+if ! ${ip} rule list | grep -q "from all lookup local"; then
+    ${ip} rule add pref 0 from all lookup local
+    echo "Added rule: pref 0 from all lookup local"
+fi
+
+if ! ${ip} rule list | grep -q "from all lookup main"; then
+    ${ip} rule add pref 1 from all lookup main
+    echo "Added rule: pref 1 from all lookup main"
+fi
+
+if ! ${ip} rule list | grep -q "from all lookup default"; then
+    ${ip} rule add pref 2 from all lookup default
+    echo "Added rule: pref 2 from all lookup default"
+fi
+
+active_interfaces=$(ip route | grep link | grep -v lxcbr0 | awk '{print $3}')
+gateways=$(ip route list table all | grep 'default via' | grep static | awk '{print $3}')
+
+num_active_interfaces=$(echo "$active_interfaces" | wc -l)
+num_gateways=$(echo "$gateways" | wc -l)
+
+if [ -z "$active_interfaces" ] || [ -z "$gateways" ]; then
+    echo "DEBUG: No active interfaces or gateways found. Exiting hook."
+    exit 0
+fi
+
+if [ "$num_active_interfaces" -ne "$num_gateways" ]; then
+    echo "ERROR: The number of interfaces and gateways do not match."
+    exit 1
+fi
+
+set -- $active_interfaces
+interfaces="$@"
+
+set -- $gateways
+gateways="$@"
+
+i=1
+for interface in $interfaces; do
+    gateway=$(echo "$gateways" | awk "NR==$i")
+    ${ip} route del default dev ${interface} 2>/dev/null
+    ${ip} route add default via ${gateway} dev ${interface}
+    echo "Added default route via ${gateway} on interface ${interface}"
+    i=$((i + 1))
+done

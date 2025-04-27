@@ -7,7 +7,6 @@ varlib="@LOCALSTATEDIR@/lib"
 # These can be overridden in @LXC_DISTRO_SYSCONF@/lxc
 #   or in @LXC_DISTRO_SYSCONF@/lxc-net
 
-USE_LXC_BRIDGE="true"
 LXC_BRIDGE="lxcbr0"
 LXC_BRIDGE_MAC="10:66:6a:00:00:00"
 LXC_ADDR="10.0.3.1"
@@ -18,7 +17,10 @@ LXC_DHCP_MAX="253"
 LXC_DHCP_CONFILE=""
 LXC_DHCP_PING="true"
 LXC_DOMAIN=""
-LXC_USE_NFT="true"
+LXC_USE_NFT="false"
+DNSMASQ_USER="shell"
+LXC_IPV4_DNS1="8.8.8.8"
+LXC_IPV4_DNS2="8.8.4.4"
 
 # IPv6 connectivity
 LXC_IPV6_ENABLE="true"
@@ -26,6 +28,8 @@ LXC_IPV6_ADDR="fc42:5009:ba4b:5ab0::1"
 LXC_IPV6_MASK="64"
 LXC_IPV6_NETWORK="fc42:5009:ba4b:5ab0::/64"
 LXC_IPV6_NAT="true"
+LXC_IPV6_DNS1="2001:4860:4860::8888"
+LXC_IPV6_DNS2="2001:4860:4860::8844"
 
 [ ! -f $distrosysconfdir/lxc ] || . $distrosysconfdir/lxc
 
@@ -78,6 +82,9 @@ start_iptables() {
     if [ -n "$LXC_IPV6_ARG" ] && [ "$LXC_IPV6_NAT" = "true" ]; then
         ip6tables $use_iptables_lock -t nat -A POSTROUTING -s ${LXC_IPV6_NETWORK} ! -d ${LXC_IPV6_NETWORK} -j MASQUERADE
     fi
+
+    iptables -t nat -F
+    iptables -P FORWARD ACCEPT
     iptables $use_iptables_lock -I INPUT -i ${LXC_BRIDGE} -p udp --dport 67 -j ACCEPT
     iptables $use_iptables_lock -I INPUT -i ${LXC_BRIDGE} -p tcp --dport 67 -j ACCEPT
     iptables $use_iptables_lock -I INPUT -i ${LXC_BRIDGE} -p udp --dport 53 -j ACCEPT
@@ -116,8 +123,6 @@ add rule ip lxc postrouting ip saddr ${LXC_NETWORK} ip daddr != ${LXC_NETWORK} c
 }
 
 start() {
-    [ "x$USE_LXC_BRIDGE" = "xtrue" ] || { exit 0; }
-
     [ ! -f "${varrun}/network_up" ] || { echo "lxc-net is already running"; exit 1; }
 
     if [ -d /sys/class/net/${LXC_BRIDGE} ]; then
@@ -170,14 +175,6 @@ start() {
     # it does by default if `--conf-file` is not present
     LXC_DHCP_CONFILE_ARG="--conf-file=${LXC_DHCP_CONFILE:-/dev/null}"
 
-    # https://lists.linuxcontainers.org/pipermail/lxc-devel/2014-October/010561.html
-    for DNSMASQ_USER in lxc-dnsmasq dnsmasq nobody
-    do
-        if getent passwd ${DNSMASQ_USER} >/dev/null; then
-            break
-        fi
-    done
-
     LXC_DHCP_PING_ARG=""
     if [ "x$LXC_DHCP_PING" = "xfalse" ]; then
         LXC_DHCP_PING_ARG="--no-ping"
@@ -194,7 +191,8 @@ start() {
             --dhcp-lease-max=${LXC_DHCP_MAX} --dhcp-no-override \
             --except-interface=lo --interface=${LXC_BRIDGE} \
             --dhcp-leasefile="${DNSMASQ_MISC_DIR}"/dnsmasq.${LXC_BRIDGE}.leases \
-            --dhcp-authoritative $LXC_IPV6_ARG || cleanup
+            --dhcp-authoritative $LXC_IPV6_ARG --server=${LXC_IPV4_DNS1} --server=${LXC_IPV4_DNS2} \
+            --server=${LXC_IPV6_DNS1} --server=${LXC_IPV6_DNS2} || cleanup
 
     touch "${varrun}"/network_up
     FAILED=0
@@ -231,8 +229,6 @@ delete table ip6 lxc;"
 }
 
 stop() {
-    [ "x$USE_LXC_BRIDGE" = "xtrue" ] || { exit 0; }
-
     [ -f "${varrun}/network_up" ] || [ "$1" = "force" ] || { echo "lxc-net isn't running"; exit 1; }
 
     if [ -d /sys/class/net/${LXC_BRIDGE} ]; then

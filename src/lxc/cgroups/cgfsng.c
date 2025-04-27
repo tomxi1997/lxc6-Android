@@ -680,7 +680,7 @@ static bool cpuset1_initialize(int dfd_base, int dfd_next)
 	/* Read cpuset.mems from parent... */
 #if !IS_BIONIC
 	bytes = lxc_readat(dfd_base, "cpuset.mems", mems, sizeof(mems));
-#elif
+#else
 	bytes = lxc_readat(dfd_base, "mems", mems, sizeof(mems));
 #endif
 	if (bytes < 0)
