@@ -5,7 +5,7 @@
 # The patch for Android network is a workaround for the
 # issue with the Android network stack.
 
-ip=/bin/ip
+ip=/system/bin/ip
 
 if type route > /dev/null 2>&1; then
     IPV6_RULE_ENABLE="true"
@@ -13,48 +13,92 @@ else
     IPV6_RULE_ENABLE="false"
 fi
 
-if ! ${ip} rule list | grep -q "from all lookup local"; then
-    ${ip} rule add pref 0 from all lookup local
-    echo "Added rule: pref 0 from all lookup local"
+if [ "$IPV6_RULE_ENABLE" = "true" ]; then
+    if ! ${ip} -6 rule list | grep -q "from all lookup main"; then
+        ${ip} -6 rule add pref 1 from all lookup main
+        echo "Added v6 rule: pref 3 from all lookup main"
+    fi
+
+    if ! ${ip} -6 rule list | grep -q "from all lookup default"; then
+        ${ip} -6 rule add pref 2 from all lookup default
+        echo "Added v6 rule: pref 2 from all lookup default"
+    fi
+else
+    if ! ${ip} rule list | grep -q "from all lookup main"; then
+        ${ip} rule add pref 1 from all lookup main
+        echo "Added v4 rule: pref 1 from all lookup main"
+    fi
+
+    if ! ${ip} rule list | grep -q "from all lookup default"; then
+        ${ip} rule add pref 2 from all lookup default
+        echo "Added v4 rule: pref 2 from all lookup default"
+    fi
 fi
 
-if ! ${ip} rule list | grep -q "from all lookup main"; then
-    ${ip} rule add pref 1 from all lookup main
-    echo "Added rule: pref 1 from all lookup main"
-fi
+ipv4_active_interfaces=$(ip route | grep link | grep -v lxcbr0 | awk '{print $3}')
+ipv4_gateways=$(ip route list table all | grep 'default via' | grep static | awk '{print $3}')
+ipv6_active_interfaces=$(route -6 | grep '/128' | grep -v lo | grep -v fe80:: | awk '{print $7}' | sort | uniq)
 
-if ! ${ip} rule list | grep -q "from all lookup default"; then
-    ${ip} rule add pref 2 from all lookup default
-    echo "Added rule: pref 2 from all lookup default"
-fi
+ipv4_num_active_interfaces=$(echo "$ipv4_active_interfaces" | wc -l)
+ipv4_num_gateways=$(echo "$ipv4_gateways" | wc -l)
 
-active_interfaces=$(ip route | grep link | grep -v lxcbr0 | awk '{print $3}')
-gateways=$(ip route list table all | grep 'default via' | grep static | awk '{print $3}')
-
-num_active_interfaces=$(echo "$active_interfaces" | wc -l)
-num_gateways=$(echo "$gateways" | wc -l)
-
-if [ -z "$active_interfaces" ] || [ -z "$gateways" ]; then
-    echo "DEBUG: No active interfaces or gateways found. Exiting hook."
+if [ -z "$ipv4_active_interfaces" ] || [ -z "$ipv4_gateways" ]; then
+    echo "DEBUG: No active v4 interfaces or gateways found. Exiting hook."
+    if [ "$IPV6_RULE_ENABLE" = "true" ]; then
+        if [ -z "$ipv6_active_interfaces" ]; then
+            echo "DEBUG: No active v6 interfaces found. Exiting hook."
+            exit 0
+        fi
+    fi
     exit 0
 fi
 
-if [ "$num_active_interfaces" -ne "$num_gateways" ]; then
-    echo "ERROR: The number of interfaces and gateways do not match."
+if [ "$ipv4_num_active_interfaces" -ne "$ipv4_num_gateways" ]; then
+    echo "ERROR: The number of interfaces and gateways for v4 do not match."
     exit 1
 fi
 
-set -- $active_interfaces
-interfaces="$@"
+set -- $ipv4_active_interfaces
+ipv4_interfaces="$@"
 
-set -- $gateways
-gateways="$@"
+set -- $ipv6_active_interfaces
+ipv6_interfaces="$@"
+
+set -- $ipv4_gateways
+ipv4_gateways="$@"
 
 i=1
-for interface in $interfaces; do
-    gateway=$(echo "$gateways" | awk "NR==$i")
-    ${ip} route del default dev ${interface} 2>/dev/null
-    ${ip} route add default via ${gateway} dev ${interface}
-    echo "Added default route via ${gateway} on interface ${interface}"
+for ipv4_interface in $ipv4_interfaces; do
+    ipv4_gateway=$(echo "$ipv4_gateways" | awk "NR==$i")
+    ${ip} route del default dev ${ipv4_interface} 2>/dev/null
+
+    if [ $i -gt 1 ]; then
+        ${ip} route add default via ${ipv4_gateway} dev ${ipv4_interface} metric $i
+        echo "Added default route via ${ipv4_gateway} with metric $i on interface ${ipv4_interface}"
+    else
+        ${ip} route add default via ${ipv4_gateway} dev ${ipv4_interface}
+        echo "Added default route via ${ipv4_gateway} on interface ${ipv4_interface}"
+    fi
     i=$((i + 1))
 done
+
+if [ "$IPV6_RULE_ENABLE" = "true" ]; then
+    i6=1
+    ip6tables -P FORWARD ACCEPT
+    ${ip} -6 route add fc42:5009:ba4b:5ab0::/64 dev lxcbr0
+    echo "Added default route for ipv6"
+    for ipv6_interface in $ipv6_interfaces; do
+        ${ip} -6 route del default dev ${ipv6_interface} 2>/dev/null
+
+        if [ $i6 -gt 1 ]; then
+            ${ip} -6 route add default via fe80::1 dev ${ipv6_interface} metric $i
+            echo "Added default route via fe80::1 with metric $i on interface ${ipv6_interface}"
+        else
+            ${ip} -6 route add default via fe80::1 dev ${ipv6_interface}
+            echo "Added default route via fe80::1 on interface ${ipv6_interface}"
+        fi
+        i6=$((i6 + 1))
+    done
+else
+    echo "DEBUG: IPV6_RULE_ENABLE is not enable. Skipping IPv6 route addition."
+fi

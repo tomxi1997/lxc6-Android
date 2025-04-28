@@ -80,6 +80,8 @@ start_ipv6() {
 start_iptables() {
     start_ipv6
     if [ -n "$LXC_IPV6_ARG" ] && [ "$LXC_IPV6_NAT" = "true" ]; then
+        ip6tables -t nat -F
+        ip6tables -P FORWARD ACCEPT
         ip6tables $use_iptables_lock -t nat -A POSTROUTING -s ${LXC_IPV6_NETWORK} ! -d ${LXC_IPV6_NETWORK} -j MASQUERADE
     fi
 
