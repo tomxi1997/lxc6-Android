@@ -18,7 +18,7 @@ LXC_DHCP_CONFILE=""
 LXC_DHCP_PING="true"
 LXC_DOMAIN=""
 LXC_USE_NFT="false"
-DNSMASQ_USER="shell"
+DNSMASQ_USER="nobody"
 LXC_IPV4_DNS1="8.8.8.8"
 LXC_IPV4_DNS2="8.8.4.4"
 
@@ -80,12 +80,10 @@ start_ipv6() {
 start_iptables() {
     start_ipv6
     if [ -n "$LXC_IPV6_ARG" ] && [ "$LXC_IPV6_NAT" = "true" ]; then
-        ip6tables -t nat -F
         ip6tables -P FORWARD ACCEPT
         ip6tables $use_iptables_lock -t nat -A POSTROUTING -s ${LXC_IPV6_NETWORK} ! -d ${LXC_IPV6_NETWORK} -j MASQUERADE
     fi
 
-    iptables -t nat -F
     iptables -P FORWARD ACCEPT
     iptables $use_iptables_lock -I INPUT -i ${LXC_BRIDGE} -p udp --dport 67 -j ACCEPT
     iptables $use_iptables_lock -I INPUT -i ${LXC_BRIDGE} -p tcp --dport 67 -j ACCEPT

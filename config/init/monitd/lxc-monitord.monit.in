@@ -1,0 +1,4 @@
+check program lxc-monitord with path @LIBEXECDIR@/lxc/lxc-monitord-android
+    start program = "@LIBEXECDIR@/lxc/lxc-monitord-android"
+    stop program = "/system/bin/killall lxc-monitord"
+    if status != 0 then alert
