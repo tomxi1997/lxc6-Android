@@ -16,7 +16,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        sudo apt-get install -y build-essential pipx python3-venv pkg-config cmake docbook2x \
+        sudo apt-get install -y -qq build-essential pipx python3-venv pkg-config cmake docbook2x \
         python3-pip pipx
         pipx ensurepath
         pipx install meson==0.61
@@ -30,6 +30,6 @@ jobs:
         -Dstrip=true -Dd_lto=true -Dlog-path=/data/share/var/log/lxc -Ddata-path=/data/share/lib/lxc \
         --localstatedir=/data/share/var -Db_pie=false -Dmemfd-rexec=false --buildtype release \
         -Dcapabilities=false -Dseccomp=false -Dselinux=false -Dapparmor=false -Dopenssl=false \
-        -Ddbus=false --cross-file aarch64-android-ndk30.txt
+        -Ddbus=false --cross-file aarch64-android-api30.txt
         
         meson compile -C build
