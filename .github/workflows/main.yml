@@ -47,8 +47,8 @@ jobs:
         sudo unzip ${libssl_file} -d /
         sudo unzip ${libcap_file} -d /
         sudo unzip ${libapparmor_file} -d /
-        sudo unzip ${libselinux} -d /
-        sudo unzip ${libseccomp} -d /
+        sudo unzip ${libselinux_file} -d /
+        sudo unzip ${libseccomp_file} -d /
         
     - name: Build lxc
       run: |
