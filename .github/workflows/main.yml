@@ -28,12 +28,6 @@ jobs:
         pipx install meson==0.61
         pipx install ninja
 
-    - name: Generate Changelog
-      env:
-          CHANGELOG_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        github_changelog_generator --user Container-On-Android --project lxc --output CHANGELOG.md -t $CHANGELOG_GITHUB_TOKEN
-
     - name: Download Dependencies 
       run: |
         libssl=$(curl -s https://api.github.com/repos/DreamConnected/libopenssl-dev/releases/latest | grep browser_download_url | cut -d'"' -f4 |grep -E 'zip$')
