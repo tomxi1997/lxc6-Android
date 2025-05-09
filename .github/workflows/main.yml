@@ -30,23 +30,23 @@ jobs:
       run: |
         libssl=$(curl -s https://api.github.com/repos/DreamConnected/libopenssl-dev/releases/latest | grep browser_download_url | cut -d'"' -f4 |grep -E 'zip$')
         libssl_file=$(curl -s https://api.github.com/repos/DreamConnected/libopenssl-dev/releases/latest | grep name | cut -d'"' -f4 |grep -E 'zip$')
-        wget -q ${libssl} && sudo unzip -q -o ${libssl_file} -d / && echo '(1/5)'
+        wget -q ${libssl} && sudo unzip -q -o ${libssl_file} -d / && echo 1/5 ${libssl} ${libssl_file}
         
         libcap=$(curl -s https://api.github.com/repos/DreamConnected/AndroidLibcapBuild/releases/latest | grep browser_download_url | cut -d'"' -f4 |grep -E 'zip$')
         libcap_file=$(curl -s https://api.github.com/repos/DreamConnected/AndroidLibcapBuild/releases/latest | grep name | cut -d'"' -f4 |grep -E 'zip$')
-        wget -q ${libcap} && sudo unzip -q -o ${libcap_file} -d / && echo '(2/5)'
+        wget -q ${libcap} && sudo unzip -q -o ${libcap_file} -d / && echo 2/5 ${libcap} ${libcap_file}
 
         libapparmor=$(curl -s https://api.github.com/repos/DreamConnected/libapparmor-dev/releases/latest | grep browser_download_url | cut -d'"' -f4 |grep -E 'zip$')
         libapparmor_file=$(curl -s https://api.github.com/repos/DreamConnected/libapparmor-dev/releases/latest | grep name | cut -d'"' -f4 |grep -E 'zip$')
-        wget -q ${libapparmor} && sudo unzip -q -o ${libapparmor_file} -d / && echo '(3/5)'
+        wget -q ${libapparmor} && sudo unzip -q -o ${libapparmor_file} -d / && echo 3/5 ${libapparmor} ${libapparmor_file}
 
         libselinux=$(curl -s https://api.github.com/repos/DreamConnected/libselinux-dev/releases/latest | grep browser_download_url | cut -d'"' -f4 |grep -E 'zip$')
         libselinux_file=$(curl -s https://api.github.com/repos/DreamConnected/libselinux-dev/releases/latest | grep name | cut -d'"' -f4 |grep -E 'zip$')
-        wget -q ${libselinux} && sudo unzip -q -o ${libselinux_file} -d / && echo '(4/5)'
+        wget -q ${libselinux} && sudo unzip -q -o ${libselinux_file} -d / && echo 4/5 ${libselinux} ${libselinux_file}
 
         libseccomp=$(curl -s https://api.github.com/repos/DreamConnected/libseccomp-dev/releases/latest | grep browser_download_url | cut -d'"' -f4 |grep -E 'zip$')
         libseccomp_file=$(curl -s https://api.github.com/repos/DreamConnected/libseccomp-dev/releases/latest | grep name | cut -d'"' -f4 |grep -E 'zip$')
-        wget -q ${libseccomp} && sudo unzip -q -o ${libseccomp_file} -d / && echo '(5/5)'
+        wget -q ${libseccomp} && sudo unzip -q -o ${libseccomp_file} -d / && echo 5/5 ${libseccomp} ${libseccomp_file}
         
     - name: Build lxc
       run: |
