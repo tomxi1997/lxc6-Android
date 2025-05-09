@@ -22,6 +22,7 @@ jobs:
       run: |
         sudo apt-get install -y -qq build-essential pipx python3-venv pkg-config cmake docbook2x \
         python3-pip pipx
+        gem install github_changelog_generator
         pipx ensurepath
         pipx install meson==0.61
         pipx install ninja
@@ -53,7 +54,7 @@ jobs:
         sed -i "s|android-ndk-r27c|$ANDROID_NDK_HOME|g" aarch64-android-api30.txt
         export PKG_CONFIG_PATH=/data/sysroot/lib/pkgconfig:/data/sysroot/lib64/pkgconfig:$PKG_CONFIG_PATH
 
-        meson setup build -Dprefix=/data/share -Dinit-script=sysvinit -Druntime-path=/data/local/tmp \
+        meson setup build -Dprefix=/data/share -Dinit-script=monitd -Druntime-path=/data/local/tmp \
         -Dstrip=true -Dd_lto=true -Dlog-path=/data/share/var/log/lxc -Ddata-path=/data/share/lib/lxc \
         --localstatedir=/data/share/var -Db_pie=false -Dmemfd-rexec=false --buildtype release \
         -Dcapabilities=true -Dseccomp=true -Dselinux=true -Dapparmor=true -Dopenssl=true -Ddbus=false \
@@ -62,6 +63,10 @@ jobs:
         meson compile -C build
         sudo /usr/local/bin/ninja -C build install
         echo "RELEASE_DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+
+    - name: Generate Changelog
+      run: |
+        github_changelog_generator --user Container-On-Android --project lxc --output CHANGELOG.md
 
     - name: Upload artifacts sysroot
       uses: actions/upload-artifact@v4.3.1
@@ -85,7 +90,7 @@ jobs:
       with:
         tag_name: ${{ env.RELEASE_DATE }}
         name: Release ${{ env.RELEASE_DATE }}
-        body: TODO New Release.
+        body-path: CHANGELOG.md
         draft: false
         prerelease: false
         files: |
