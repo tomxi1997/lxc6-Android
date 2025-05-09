@@ -46,7 +46,7 @@ jobs:
         wget ${libssl} ${libcap} ${libapparmor} ${libselinux} ${libseccomp}
         sudo unzip ${libssl_file} -d /
         sudo unzip ${libcap_file} -d /
-        sudo unzip ${libapparmor_file} -d /
+        sudo unzip -o ${libapparmor_file} -d /
         sudo unzip ${libselinux_file} -d /
         sudo unzip ${libseccomp_file} -d /
         
