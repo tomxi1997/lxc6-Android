@@ -43,6 +43,16 @@ jobs:
         # Libseccomp-dev
         libseccomp=$(curl -s https://api.github.com/repos/DreamConnected/libseccomp-dev/releases/latest | grep browser_download_url | cut -d'"' -f4 |grep -E 'zip$')
         libseccomp_file=$(curl -s https://api.github.com/repos/DreamConnected/libseccomp-dev/releases/latest | grep name | cut -d'"' -f4 |grep -E 'zip$')
+        echo "libssl: $libssl"
+        echo "libssl_file: $libssl_file"
+        echo "libcap: $libcap"
+        echo "libcap_file: $libcap_file"
+        echo "libapparmor: $libapparmor"
+        echo "libapparmor_file: $libapparmor_file"
+        echo "libselinux: $libselinux"
+        echo "libselinux_file: $libselinux_file"
+        echo "libseccomp: $libseccomp"
+        echo "libseccomp_file: $libseccomp_file"
         wget ${libssl} ${libcap} ${libapparmor} ${libselinux} ${libseccomp}
         sudo unzip ${libssl_file} -d /
         sudo unzip ${libcap_file} -d /
