@@ -30,25 +30,23 @@ jobs:
       run: |
         libssl=$(curl -s https://api.github.com/repos/DreamConnected/libopenssl-dev/releases/latest | grep browser_download_url | cut -d'"' -f4 |grep -E 'zip$')
         libssl_file=$(curl -s https://api.github.com/repos/DreamConnected/libopenssl-dev/releases/latest | grep name | cut -d'"' -f4 |grep -E 'zip$')
+        wget -q ${libssl} && sudo unzip -q ${libssl_file} -d /
         
         libcap=$(curl -s https://api.github.com/repos/DreamConnected/AndroidLibcapBuild/releases/latest | grep browser_download_url | cut -d'"' -f4 |grep -E 'zip$')
         libcap_file=$(curl -s https://api.github.com/repos/DreamConnected/AndroidLibcapBuild/releases/latest | grep name | cut -d'"' -f4 |grep -E 'zip$')
+        wget -q ${libcap} && sudo unzip -q ${libcap_file} -d /
 
         libapparmor=$(curl -s https://api.github.com/repos/DreamConnected/libapparmor-dev/releases/latest | grep browser_download_url | cut -d'"' -f4 |grep -E 'zip$')
         libapparmor_file=$(curl -s https://api.github.com/repos/DreamConnected/libapparmor-dev/releases/latest | grep name | cut -d'"' -f4 |grep -E 'zip$')
+        wget -q ${libapparmor} && sudo unzip -q ${libapparmor_file} -d /
 
         libselinux=$(curl -s https://api.github.com/repos/DreamConnected/libselinux-dev/releases/latest | grep browser_download_url | cut -d'"' -f4 |grep -E 'zip$')
         libselinux_file=$(curl -s https://api.github.com/repos/DreamConnected/libselinux-dev/releases/latest | grep name | cut -d'"' -f4 |grep -E 'zip$')
+        wget -q ${libselinux} && sudo unzip -q ${libselinux_file} -d /
 
         libseccomp=$(curl -s https://api.github.com/repos/DreamConnected/libseccomp-dev/releases/latest | grep browser_download_url | cut -d'"' -f4 |grep -E 'zip$')
         libseccomp_file=$(curl -s https://api.github.com/repos/DreamConnected/libseccomp-dev/releases/latest | grep name | cut -d'"' -f4 |grep -E 'zip$')
-
-        wget ${libssl} ${libcap} ${libapparmor} ${libselinux} ${libseccomp}
-        sudo unzip ${libssl_file} -d /
-        sudo unzip ${libcap_file} -d /
-        sudo unzip -o ${libapparmor_file} -d /
-        sudo unzip ${libselinux_file} -d /
-        sudo unzip ${libseccomp_file} -d /
+        wget -q ${libseccomp} && sudo unzip -q ${libseccomp_file} -d /
         
     - name: Build lxc
       run: |
