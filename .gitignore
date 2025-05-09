@@ -6,3 +6,4 @@
 
 # Release tarballs.
 lxc-*.tar.gz*
+/.github/workflows
