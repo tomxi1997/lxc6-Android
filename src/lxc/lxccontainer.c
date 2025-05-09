@@ -2033,7 +2033,7 @@ WRAP_API_1(bool, lxcapi_reboot2, int)
 static bool do_lxcapi_shutdown(struct lxc_container *c, int timeout)
 {
 	__do_close int pidfd = -EBADF, state_client_fd = -EBADF;
-	int haltsignal = SIGPWR;
+	int haltsignal = SIGQUIT;
 	pid_t pid = -1;
 	lxc_state_t states[MAX_STATE] = {0};
 	int killret, ret;
