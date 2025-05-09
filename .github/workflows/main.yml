@@ -65,8 +65,10 @@ jobs:
         echo "RELEASE_DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
 
     - name: Generate Changelog
+      env:
+          CHANGELOG_GITHUB_TOKEN: ${{ secrets.CHANGELOG_GITHUB_TOKEN }}
       run: |
-        github_changelog_generator --user Container-On-Android --project lxc --output CHANGELOG.md
+        github_changelog_generator --user Container-On-Android --project lxc --output CHANGELOG.md -t $CHANGELOG_GITHUB_TOKEN
 
     - name: Upload artifacts sysroot
       uses: actions/upload-artifact@v4.3.1
