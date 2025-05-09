@@ -27,6 +27,12 @@ jobs:
         pipx install meson==0.61
         pipx install ninja
 
+    - name: Generate Changelog
+      env:
+          CHANGELOG_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        github_changelog_generator --user Container-On-Android --project lxc --output CHANGELOG.md -t $CHANGELOG_GITHUB_TOKEN
+
     - name: Download Dependencies 
       run: |
         libssl=$(curl -s https://api.github.com/repos/DreamConnected/libopenssl-dev/releases/latest | grep browser_download_url | cut -d'"' -f4 |grep -E 'zip$')
@@ -63,12 +69,6 @@ jobs:
         meson compile -C build
         sudo /usr/local/bin/ninja -C build install
         echo "RELEASE_DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
-
-    - name: Generate Changelog
-      env:
-          CHANGELOG_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        github_changelog_generator --user Container-On-Android --project lxc --output CHANGELOG.md -t $CHANGELOG_GITHUB_TOKEN
 
     - name: Upload artifacts sysroot
       uses: actions/upload-artifact@v4.3.1
