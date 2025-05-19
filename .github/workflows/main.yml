@@ -21,7 +21,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get install -y -qq build-essential pipx python3-venv pkg-config cmake docbook2x \
-        python3-pip pipx
+        python3-pip pipx jq
         sudo npm install -g conventional-changelog-cli
         conventional-changelog -p angular -i CHANGELOG.md -s
         pipx ensurepath
@@ -63,7 +63,7 @@ jobs:
         
         meson compile -C build
         sudo /usr/local/bin/ninja -C build install
-        echo "RELEASE_DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+        echo "RELEASE_TAG=$(meson introspect meson.build --projectinfo | jq -r '.version')-$(git log -1 --format=%h)" >> $GITHUB_ENV
 
     - name: Upload artifacts sysroot
       uses: actions/upload-artifact@v4.3.1
@@ -85,8 +85,8 @@ jobs:
     - name: Create Release and Upload Release Asset
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: ${{ env.RELEASE_DATE }}
-        name: Release ${{ env.RELEASE_DATE }}
+        tag_name: ${{ env.RELEASE_TAG }}
+        name: Release ${{ env.RELEASE_TAG }}
         body_path: CHANGELOG.md
         draft: false
         prerelease: false
