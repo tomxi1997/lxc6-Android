@@ -925,7 +925,7 @@ pkg_config_file = pkgconfig.generate(liblxc,
     description: 'linux container tools',
     version: version_data.get('LXC_VERSION'),
     url: 'http://linuxcontainers.org',
-    libraries: '-c -ldl',
+    libraries: '-lc -ldl',
     libraries_private: pkgconfig_libs,
 )
 
