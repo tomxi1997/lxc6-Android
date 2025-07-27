@@ -23,7 +23,7 @@ jobs:
         sudo apt-get install -y -qq build-essential pipx python3-venv pkg-config cmake docbook2x \
         python3-pip pipx jq
         sudo npm install -g conventional-changelog-cli
-        conventional-changelog -p angular -i CHANGELOG.md -s
+        conventional-changelog -p atom -i CHANGELOG.md -s
         pipx ensurepath
         pipx install meson==0.61
         pipx install ninja
