@@ -55,12 +55,28 @@ jobs:
         sed -i "s|android-ndk-r27c|$ANDROID_NDK_HOME|g" aarch64-android-api30.txt
         export PKG_CONFIG_PATH=/data/sysroot/lib/pkgconfig:/data/sysroot/lib64/pkgconfig:$PKG_CONFIG_PATH
 
-        meson setup build -Dprefix=/data/share -Dinit-script=monitd -Druntime-path=/data/local/tmp \
-        -Dstrip=true -Dd_lto=true -Dlog-path=/data/share/var/log/lxc -Ddata-path=/data/share/lib/lxc \
-        --localstatedir=/data/share/var -Db_pie=false -Dmemfd-rexec=false --buildtype release \
-        -Dcapabilities=true -Dseccomp=true -Dselinux=true -Dapparmor=true -Dopenssl=true -Ddbus=false \
-        -Ddbus=false --cross-file aarch64-android-api30.txt
-        
+        meson setup build \
+            -Dprefix=/data/share \
+            -Dinit-script=monitd \
+            -Druntime-path=/data/local/tmp \
+            -Dstrip=true \
+            -Dd_lto=true \
+            -Dlog-path=log/lxc \
+            -Ddata-path=/data/share/lib/lxc \
+            --localstatedir=/data/share/var \
+            -Db_pie=false \
+            -Dmemfd-rexec=false \
+            --buildtype release \
+            -Dcapabilities=true \
+            -Dseccomp=true \
+            -Dselinux=true \
+            -Dapparmor=true \
+            -Dopenssl=true \
+            -Ddbus=false \
+            -Ddbus=false \
+            -Dandroid-log=true \
+            --cross-file aarch64-android-api30.txt
+
         meson compile -C build
         sudo /usr/local/bin/ninja -C build install
         echo "RELEASE_TAG=$(meson introspect meson.build --projectinfo | jq -r '.version')-$(git log -1 --format=%h)" >> $GITHUB_ENV

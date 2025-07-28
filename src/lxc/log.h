@@ -29,6 +29,14 @@
 #define LXC_LOG_PREFIX_SIZE 32
 #define LXC_LOG_BUFFER_SIZE 4096
 
+#ifndef LXC_LOG_TAG
+#define LXC_LOG_TAG "lxc"
+#endif
+
+#ifdef USE_ANDROID_LOG
+#include <android/log.h>
+#endif
+
 /* predefined lxc log priorities. */
 enum lxc_loglevel {
 	LXC_LOG_LEVEL_TRACE,
@@ -392,6 +400,9 @@ __lxc_unused static inline void LXC_##LEVEL(struct lxc_log_locinfo* locinfo,	\
 #if (defined(__GNU_LIBRARY__) || defined(__MUSL__))  && !ENABLE_COVERITY_BUILD
 #define SYSTRACE(format, ...)                              \
 		TRACE("%m - " format, ##__VA_ARGS__)
+#elif IS_BIONIC && USE_ANDROID_LOG
+#define SYSTRACE(format, ...)                              \
+                __android_log_print(ANDROID_LOG_VERBOSE, LXC_LOG_TAG, format, ##__VA_ARGS__)
 #else
 #define SYSTRACE(format, ...)                              \
 	do {                                               \
@@ -403,6 +414,9 @@ __lxc_unused static inline void LXC_##LEVEL(struct lxc_log_locinfo* locinfo,	\
 #if (defined(__GNU_LIBRARY__) || defined(__MUSL__))  && !ENABLE_COVERITY_BUILD
 #define SYSDEBUG(format, ...)                              \
                 DEBUG("%m - " format, ##__VA_ARGS__)
+#elif IS_BIONIC && USE_ANDROID_LOG
+#define SYSDEBUG(format, ...)                              \
+                __android_log_print(ANDROID_LOG_DEBUG, LXC_LOG_TAG, format, ##__VA_ARGS__)
 #else
 #define SYSDEBUG(format, ...)                              \
 	do {                                               \
@@ -415,6 +429,9 @@ __lxc_unused static inline void LXC_##LEVEL(struct lxc_log_locinfo* locinfo,	\
 #if (defined(__GNU_LIBRARY__) || defined(__MUSL__))  && !ENABLE_COVERITY_BUILD
 #define SYSINFO(format, ...)                              \
                 INFO("%m - " format, ##__VA_ARGS__)
+#elif IS_BIONIC && USE_ANDROID_LOG
+#define SYSINFO(format, ...)                              \
+                __android_log_print(ANDROID_LOG_INFO, LXC_LOG_TAG, format, ##__VA_ARGS__)
 #else
 #define SYSINFO(format, ...)                              \
 	do {                                              \
@@ -426,6 +443,9 @@ __lxc_unused static inline void LXC_##LEVEL(struct lxc_log_locinfo* locinfo,	\
 #if (defined(__GNU_LIBRARY__) || defined(__MUSL__))  && !ENABLE_COVERITY_BUILD
 #define SYSNOTICE(format, ...)                              \
 		NOTICE("%m - " format, ##__VA_ARGS__)
+#elif IS_BIONIC && USE_ANDROID_LOG
+#define SYSNOTICE(format, ...)                              \
+                __android_log_print(ANDROID_LOG_INFO, LXC_LOG_TAG, format, ##__VA_ARGS__)
 #else
 #define SYSNOTICE(format, ...)                              \
 	do {                                                \
@@ -437,6 +457,9 @@ __lxc_unused static inline void LXC_##LEVEL(struct lxc_log_locinfo* locinfo,	\
 #if (defined(__GNU_LIBRARY__) || defined(__MUSL__))  && !ENABLE_COVERITY_BUILD
 #define SYSWARN(format, ...)                              \
 		WARN("%m - " format, ##__VA_ARGS__)
+#elif IS_BIONIC && USE_ANDROID_LOG
+#define SYSWARN(format, ...)                              \
+                __android_log_print(ANDROID_LOG_WARN, LXC_LOG_TAG, format, ##__VA_ARGS__)
 #else
 #define SYSWARN(format, ...)                              \
 	do {                                              \
@@ -448,6 +471,9 @@ __lxc_unused static inline void LXC_##LEVEL(struct lxc_log_locinfo* locinfo,	\
 #if (defined(__GNU_LIBRARY__) || defined(__MUSL__))  && !ENABLE_COVERITY_BUILD
 #define SYSERROR(format, ...)                              \
 		ERROR("%m - " format, ##__VA_ARGS__)
+#elif IS_BIONIC && USE_ANDROID_LOG
+#define SYSERROR(format, ...)                              \
+                __android_log_print(ANDROID_LOG_ERROR, LXC_LOG_TAG, format, ##__VA_ARGS__)
 #else
 #define SYSERROR(format, ...)                              \
 	do {                                               \

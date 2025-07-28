@@ -26,10 +26,25 @@ jobs:
       run: |
         sed -i "s|android-ndk-r27c|$ANDROID_NDK_HOME|g" aarch64-android-api30.txt
 
-        meson setup build -Dprefix=/data/share -Dinit-script=sysvinit -Druntime-path=/data/local/tmp \
-        -Dstrip=true -Dd_lto=true -Dlog-path=/data/share/var/log/lxc -Ddata-path=/data/share/lib/lxc \
-        --localstatedir=/data/share/var -Db_pie=false -Dmemfd-rexec=false --buildtype release \
-        -Dcapabilities=false -Dseccomp=false -Dselinux=false -Dapparmor=false -Dopenssl=false \
-        -Ddbus=false --cross-file aarch64-android-api30.txt
-        
+        meson setup build \
+            -Dprefix=/data/share \
+            -Dinit-script=sysvinit \
+            -Druntime-path=/data/local/tmp \
+            -Dstrip=true \
+            -Dd_lto=true \
+            -Db_pie=false \
+            -Dlog-path=log/lxc \
+            -Ddata-path=/data/share/lib/lxc \
+            --localstatedir=/data/share/var \
+            -Dmemfd-rexec=true \
+            --buildtype debug \
+            -Dcapabilities=false \
+            -Dseccomp=false \
+            -Dselinux=false \
+            -Dapparmor=false \
+            -Dopenssl=false \
+            -Ddbus=false \
+            -Dandroid-log=true \
+            --cross-file aarch64-android-api30.txt
+
         meson compile -C build

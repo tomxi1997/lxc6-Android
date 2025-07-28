@@ -75,6 +75,10 @@ option('selinux', type: 'boolean', value: true,
 option('tests', type: 'boolean', value: false,
        description: 'build and install tests')
 
+# not in autotools
+option('android-log', type: 'boolean', value: true,
+       description: 'Use android log management')
+
 # Paths
 # was --apparmor-cache-dir in autotools
 option('apparmor-cache-path', type: 'string', value: 'cache/lxc/apparmor',

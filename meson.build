@@ -148,6 +148,7 @@ want_state_dirs = get_option('install-state-dirs')
 want_thread_safety = get_option('thread-safety')
 want_memfd_rexec = get_option('memfd-rexec')
 want_dbus = get_option('dbus')
+want_android_log = get_option('android-log')
 
 # Set sysconfdir
 fs = import('fs')
@@ -463,6 +464,11 @@ srcconf.set10('HAVE_FMEMOPEN', have)
 ## Android
 have = cc.get_id().contains('clang') and cc.has_header('android/log.h')
 srcconf.set10('IS_BIONIC', have)
+if want_android_log
+    liblog = cc.find_library('log')
+    liblxc_dependencies += liblog
+    srcconf.set10('USE_ANDROID_LOG', liblog.found())
+endif
 
 have = cc.has_function('openpty', dependencies: libutil, prefix: '#include <pty.h>')
 srcconf.set10('HAVE_OPENPTY', have)
