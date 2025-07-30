@@ -2,7 +2,7 @@ name: Sync Fork
 
 on:
   schedule:
-    - cron: '0 12 * * *' # every  12:00
+    - cron: '20 15 * * 1,5' # every  12:00
   workflow_dispatch: # on button click
 
 jobs:
@@ -16,4 +16,6 @@ jobs:
           owner: Container-On-Android
           base: main
           head: main
+          pr_title: "Merge upstream branch 'main'"
           pr_message: "Merge branch 'lxc:main' into main"
+          auto_merge: false
