@@ -440,7 +440,7 @@ if want_capabilities
     code = '''
 int main(int argc, char *argv[]) { return 0; };
 '''
-    if libcap_static.found() and not IS_BIONIC
+    if libcap_static.found() and not cc.has_header('android/log.h') #has_define() is since Meson 1.3.0
         libcap_static_linkable = cc.links(code, args: '-static', dependencies: libcap_static)
     else
         libcap_static_linkable = false
