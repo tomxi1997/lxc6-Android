@@ -96,7 +96,12 @@ static void lxc_rexec_as_memfd(char **argv, char **envp, const char *memfd_name)
 		       tmpfd = -EBADF;
 	int ret;
 	ssize_t bytes_sent = 0;
+#if IS_BIONIC && __ANDROID_API__ >= 30
+	off_t fd_size = -1;
+#else
+	#error "memfd_create() not implemented under Android 30"
 	struct stat st = {0};
+#endif
 
 	memfd = memfd_create(memfd_name, MFD_ALLOW_SEALING | MFD_CLOEXEC);
 	if (memfd < 0) {
@@ -121,15 +126,32 @@ static void lxc_rexec_as_memfd(char **argv, char **envp, const char *memfd_name)
 		return;
 
 	/* sendfile() handles up to 2GB. */
+#if IS_BIONIC
+	fd_size = lseek(fd, 0, SEEK_END);
+	if (fd_size < 0) {
+		return;
+	}
+
+	lseek(fd, 0, SEEK_SET);
+#else
 	ret = fstat(fd, &st);
 	if (ret)
 		return;
+#endif
 
+#if IS_BIONIC
+	while (bytes_sent < fd_size) {
+#else
 	while (bytes_sent < st.st_size) {
+#endif
 		ssize_t sent;
 
 		sent = lxc_sendfile_nointr(memfd >= 0 ? memfd : tmpfd, fd, NULL,
+#if IS_BIONIC
+					   fd_size - (off_t)bytes_sent);
+#else
 					   st.st_size - bytes_sent);
+#endif
 		if (sent < 0) {
 			/*
 			 * Fallback to shoveling data between kernel- and
@@ -166,7 +188,11 @@ static void lxc_rexec_as_memfd(char **argv, char **envp, const char *memfd_name)
 	if (execfd < 0)
 		return;
 
+#if IS_BIONIC
+	execveat(execfd, "", argv, envp, AT_EMPTY_PATH);
+#else
 	fexecve(execfd, argv, envp);
+#endif
 }
 
 /*
