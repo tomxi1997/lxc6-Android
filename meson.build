@@ -465,7 +465,8 @@ srcconf.set10('HAVE_FMEMOPEN', have)
 have = cc.get_id().contains('clang') and cc.has_header('android/log.h')
 srcconf.set10('IS_BIONIC', have)
 if want_android_log
-    liblog = cc.find_library('log')
+    liblog = cc.find_library('log', required: true)
+    pkgconfig_libs += liblog
     liblxc_dependencies += liblog
     srcconf.set10('USE_ANDROID_LOG', liblog.found())
 endif
