@@ -73,7 +73,6 @@ jobs:
             -Dapparmor=true \
             -Dopenssl=true \
             -Ddbus=false \
-            -Ddbus=false \
             -Dandroid-log=true \
             --cross-file aarch64-android-api30.txt
 
