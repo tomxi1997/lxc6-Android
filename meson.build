@@ -266,7 +266,19 @@ if add_languages('cpp', required : want_oss_fuzz)
     add_project_arguments(cxx.get_supported_arguments(basic_disabled_warnings), language : 'cpp')
 endif
 
+## Android
+have = cc.get_id().contains('clang') and cc.has_header('android/log.h')
+srcconf.set10('IS_BIONIC', have)
+
 # Feature detection
+## Android Log System.
+if want_android_log
+    liblog = cc.find_library('log', required: true)
+    pkgconfig_libs += liblog
+    liblxc_dependencies += liblog
+    srcconf.set10('USE_ANDROID_LOG', liblog.found())
+endif
+
 ## I/O uring.
 if want_io_uring
     liburing = dependency('liburing')
@@ -428,7 +440,7 @@ if want_capabilities
     code = '''
 int main(int argc, char *argv[]) { return 0; };
 '''
-    if libcap_static.found()
+    if libcap_static.found() and not IS_BIONIC
         libcap_static_linkable = cc.links(code, args: '-static', dependencies: libcap_static)
     else
         libcap_static_linkable = false
@@ -460,15 +472,6 @@ pkgconfig_libs += pam
 ## Others.
 have = cc.has_function('fmemopen', prefix: '#include <stdio.h>', args: '-D_GNU_SOURCE')
 srcconf.set10('HAVE_FMEMOPEN', have)
-
-## Android
-have = cc.get_id().contains('clang') and cc.has_header('android/log.h')
-srcconf.set10('IS_BIONIC', have)
-if want_android_log
-    liblog = cc.find_library('log')
-    liblxc_dependencies += liblog
-    srcconf.set10('USE_ANDROID_LOG', liblog.found())
-endif
 
 have = cc.has_function('openpty', dependencies: libutil, prefix: '#include <pty.h>')
 srcconf.set10('HAVE_OPENPTY', have)
