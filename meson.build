@@ -581,6 +581,8 @@ foreach ident: [
                              #include <mntent.h>'''],
     ['setns',             '''#include <sched.h>'''],
     ['sigdescr_np',       '''#include <string.h>'''],
+    ['strsignal',         '''#include <string.h>'''],
+    ['sys_siglist',       '''#include <signal.h>'''],
     ['signalfd',          '''#include <sys/signalfd.h>'''],
     ['statvfs',           '''#include <sys/statvfs.h>'''],
     ['statx',             '''#include <sys/types.h>
@@ -635,6 +637,8 @@ foreach tuple: [
     ['setmntent'],
     ['setns'],
     ['sigdescr_np'],
+    ['strsignal'],
+    ['sys_siglist'],
     ['signalfd'],
     ['statx'],
     ['statvfs'],
