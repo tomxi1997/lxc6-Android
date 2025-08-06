@@ -273,10 +273,14 @@ srcconf.set10('IS_BIONIC', have)
 # Feature detection
 ## Android Log System.
 if want_android_log
-    liblog = cc.find_library('log', required: true)
-    pkgconfig_libs += liblog
-    liblxc_dependencies += liblog
-    srcconf.set10('USE_ANDROID_LOG', liblog.found())
+    if srcconf.get('IS_BIONIC') == true
+        liblog = cc.find_library('log', required: true)
+        pkgconfig_libs += liblog
+        liblxc_dependencies += liblog
+        srcconf.set10('USE_ANDROID_LOG', liblog.found())
+    else
+        error('Android log system only support on Android platform')
+    endif
 endif
 
 ## I/O uring.
