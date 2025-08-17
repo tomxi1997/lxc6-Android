@@ -273,7 +273,7 @@ srcconf.set10('IS_BIONIC', have)
 # Feature detection
 ## Android Log System.
 if want_android_log
-    if srcconf.get('IS_BIONIC') == true
+    if srcconf.get('IS_BIONIC') == 1
         liblog = cc.find_library('log', required: true)
         pkgconfig_libs += liblog
         liblxc_dependencies += liblog
