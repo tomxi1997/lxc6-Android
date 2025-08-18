@@ -270,6 +270,23 @@ endif
 have = cc.get_id().contains('clang') and cc.has_header('android/log.h')
 srcconf.set10('IS_BIONIC', have)
 
+## Android Native Build
+srcconf.set10('IS_BIONIC_NATIVE', false)
+if meson.is_cross_build() == false and srcconf.get('IS_BIONIC') == 1
+    sdk_version = run_command('getprop', 'ro.build.version.sdk', check: true).stdout().strip()
+    cpu_arch = build_machine.cpu_family()
+    if cpu_arch == 'aarch64'
+        add_project_arguments('--target=aarch64-linux-android' + sdk_version, language: 'c')
+    elif cpu_arch == 'arm'
+        add_project_arguments('--target=armv7a-linux-androideabi' + sdk_version, language: 'c')
+    elif cpu_arch == 'X86_64'
+        add_project_arguments('--target=x86_64-linux-android' + sdk_version, language: 'c')
+    else
+        error('Unsupported arch:', cpu_arch)
+    endif
+    srcconf.set10('IS_BIONIC_NATIVE', true)
+endif
+
 # Feature detection
 ## Android Log System.
 if want_android_log
