@@ -55,11 +55,30 @@ wget_wrapper() {
   return 1
 }
 
+curl_wrapper() {
+  for _ in $(seq 3); do
+    if curl "$@"; then
+      return 0
+    fi
+  done
+
+  return 1
+}
+
 download_file() {
   if [ "${DOWNLOAD_VERBOSE}" = "true" ]; then
     echo "Download file: https://${DOWNLOAD_SERVER}$1"
   fi
-  if ! wget_wrapper --user-agent="lxc/@PACKAGE_VERSION@ compat:${DOWNLOAD_COMPAT_LEVEL}" -T 30 -q "https://${DOWNLOAD_SERVER}/$1" -O "$2" >/dev/null 2>&1; then
+
+  if [ "${IS_TOYBOX_UTILS}" = "true" ]; then
+    tool="curl_wrapper"
+    extra_args="-m 30 -f -L"
+  else
+    tool="wget_wrapper"
+    extra_args="-T 30 -q"
+  fi
+
+  if ! ${tool} --user-agent "lxc/@PACKAGE_VERSION@ compat:${DOWNLOAD_COMPAT_LEVEL}" ${extra_args} "https://${DOWNLOAD_SERVER}/$1" -o "$2" >/dev/null 2>&1; then
     if [ "$3" = "noexit" ]; then
       return 1
     else
@@ -137,7 +156,47 @@ EOF
   return 0
 }
 
-if ! options=$(getopt -o d:r:a:hl -l dist:,release:,arch:,help,list,variant:,\
+# toybox tar required xz but not found in Android, so we use su manager busybox.
+# In most cases, if you need to use this project, we default to having Magisk, 
+# KernelSU, or APatch installed.
+IS_ANDROID_TAR="false"
+if tar --version | grep -sq "android"; then
+    IS_ANDROID_TAR="true"
+fi
+
+BUSYBOX_PATHS=(
+  "/data/adb/magisk/busybox"
+  "/data/adb/ksu/bin/busybox"
+  "/data/adb/ap/bin/busybox"
+)
+
+if [ ! -f "@BINDIR/xz" ]; then
+    for xz in "${BUSYBOX_PATHS[@]}"; do
+        if [ -f "${xz}" ]; then
+            ln -s "${xz}" "@BINDIR/xz"
+            break
+        fi
+    done
+fi
+
+GETOPT="getopt"
+IS_TOYBOX_UTILS="false"
+if toybox | grep -sqE "tar|getopt"; then
+    IS_TOYBOX_UTILS="true"
+    GETOPT="toybox getopt"
+fi
+
+# Check for required binaries
+for bin in tar xz wget getopt; do
+  if ! command -V "${bin}" >/dev/null 2>&1; then
+    if [ "${IS_TOYBOX_UTILS}" = "false" ]; then
+      echo "ERROR: Missing required tool: ${bin}" 1>&2
+      exit 1
+    fi
+  fi
+done
+
+if ! options=$($GETOPT -o d:r:a:hl -l dist:,release:,arch:,help,list,variant:,\
 server:,flush-cache,force-cache,verbose,name:,path:,\
 rootfs:,mapped-uid:,mapped-gid: -- "$@"); then
   usage
@@ -164,14 +223,6 @@ while :; do
     --mapped-gid)  LXC_MAPPED_GID="$2"; shift 2;;
     *)             break;;
   esac
-done
-
-# Check for required binaries
-for bin in tar xz wget; do
-  if ! command -V "${bin}" >/dev/null 2>&1; then
-    echo "ERROR: Missing required tool: ${bin}" 1>&2
-    exit 1
-  fi
 done
 
 # Check that we have all variables we need
@@ -396,7 +447,7 @@ fi
 # is to use a function wrapper, but the latter can't be used here as the args
 # are dynamic. We thus need to ignore the warning brought by shellcheck.
 # shellcheck disable=SC2086
-if [ "${IS_BSD_TAR}" = "true" ]; then
+if [ "${IS_BSD_TAR}" = "true" ] || [ "${IS_ANDROID_TAR}" = "true" ]; then
   tar ${EXCLUDES} --numeric-owner -xpJf "${LXC_CACHE_PATH}/rootfs.tar.xz" -C "${LXC_ROOTFS}"
 else
   tar --anchored ${EXCLUDES} --numeric-owner --xattrs-include='*' -xpJf "${LXC_CACHE_PATH}/rootfs.tar.xz" -C "${LXC_ROOTFS}"
