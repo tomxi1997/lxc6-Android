@@ -13,3 +13,10 @@ lxc_net = configure_file(
     output: 'lxc-net',
     install: true,
     install_dir: lxclibexec)
+
+lxc_net_builtin = configure_file(
+    configuration: conf,
+    input: 'lxc-net-builtin.in',
+    output: 'lxc-net-builtin',
+    install: true,
+    install_dir: lxclibexec)

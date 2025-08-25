@@ -5,6 +5,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    name: Build test
     steps:
     - uses: actions/checkout@v4
 
@@ -27,13 +28,13 @@ jobs:
 
         meson setup build \
             -Dprefix=/data/share \
-            -Dinit-script=monitd \
-            -Druntime-path=/data/local/tmp \
+            -Dinit-script=module \
+            -Druntime-path=/data/share/tmp \
             -Dstrip=true \
             -Dd_lto=true \
             -Db_pie=false \
             -Dlog-path=log/lxc \
-            -Ddata-path=/data/share/lib/lxc \
+            -Ddata-path=lib/lxc \
             --localstatedir=/data/share/var \
             -Dmemfd-rexec=true \
             --buildtype debug \
@@ -54,3 +55,9 @@ jobs:
       with:
         name: android-aarch64-lxc-shared-api30
         path: /data/share/*
+
+    - name: Upload artifacts lxc-module
+      uses: actions/upload-artifact@v4.3.1
+      with:
+        name: android-lxc-module
+        path: lxc-module.zip

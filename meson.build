@@ -110,6 +110,8 @@ srcconf.set_quoted('RUNTIME_PATH', runtimepath)
 srcconf.set_quoted('SBINDIR', sbindir)
 
 conf = configuration_data()
+conf.set('PREFIXDIR', prefixdir)
+conf.set('LIBDIR', libdir)
 conf.set('BINDIR', bindir)
 conf.set('LIBEXECDIR', libexecdir)
 conf.set('LOCALSTATEDIR', localstatedir)
@@ -270,10 +272,28 @@ endif
 have = cc.get_id().contains('clang') and cc.has_header('android/log.h')
 srcconf.set10('IS_BIONIC', have)
 
+## Android Native Build
+srcconf.set10('IS_BIONIC_NATIVE', false)
+if meson.is_cross_build() == false and srcconf.get('IS_BIONIC') == 1
+    sdk_version = run_command('getprop', 'ro.build.version.sdk', check: true).stdout().strip()
+    cpu_arch = build_machine.cpu_family()
+    if cpu_arch == 'aarch64'
+        add_project_arguments('--target=aarch64-linux-android' + sdk_version, language: 'c')
+    elif cpu_arch == 'arm'
+        add_project_arguments('--target=armv7a-linux-androideabi' + sdk_version, language: 'c')
+    elif cpu_arch == 'X86_64'
+        add_project_arguments('--target=x86_64-linux-android' + sdk_version, language: 'c')
+    else
+        error('Unsupported arch:', cpu_arch)
+    endif
+    srcconf.set10('IS_BIONIC_NATIVE', true)
+endif
+
 # Feature detection
 ## Android Log System.
+srcconf.set10('USE_ANDROID_LOG', false)
 if want_android_log
-    if srcconf.get('IS_BIONIC') == true
+    if srcconf.get('IS_BIONIC') == 1
         liblog = cc.find_library('log', required: true)
         pkgconfig_libs += liblog
         liblxc_dependencies += liblog
@@ -310,6 +330,7 @@ endif
 sh = find_program('sh')
 date = find_program('date')
 git = find_program('git', required: false)
+zip = find_program('zip', required: false)
 time_epoch = run_command(sh, '-c', 'echo "$SOURCE_DATE_EPOCH"', check: true).stdout().strip()
 if time_epoch == '' and git.found() and run_command('test', '-e', '.git', check: false).returncode() == 0
     # If we're in a git repository, use the creation time of the latest git tag.
@@ -921,6 +942,7 @@ if want_install_init
     subdir('config/init/systemd')
     subdir('config/init/sysvinit')
     subdir('config/init/monitd')
+    subdir('config/init/module')
     subdir('config/sysconfig')
 endif
 if want_selinux

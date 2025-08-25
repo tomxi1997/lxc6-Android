@@ -1,0 +1,10 @@
+#!/bin/sh
+
+export LD_LIBRARY_PATH=/system/lib64:/system/lib:@LIBDIR@:/data/sysroot/lib64:/data/sysroot/lib
+
+for container in $(lxc-ls); do
+    echo "stopping: $container"
+    lxc-stop -n "$container" 2>/dev/null || lxc-stop -n "$container" -k
+done
+
+rm -rf @PREFIXDIR@

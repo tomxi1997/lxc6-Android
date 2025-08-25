@@ -260,7 +260,12 @@ EOF
   return 0
 }
 
-if ! options=$(getopt -o hp:n: -l help,rootfs:,path:,name:,mapped-uid:,mapped-gid:,busybox-path: -- "$@"); then
+GETOPT="getopt"
+if toybox getopt --help >/dev/null 2>&1; then
+      GETOPT="toybox getopt"
+fi
+
+if ! options=$($GETOPT -o hp:n: -l help,rootfs:,path:,name:,mapped-uid:,mapped-gid:,busybox-path: -- "$@"); then
   usage
   exit 1
 fi

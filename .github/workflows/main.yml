@@ -57,12 +57,12 @@ jobs:
 
         meson setup build \
             -Dprefix=/data/share \
-            -Dinit-script=monitd \
-            -Druntime-path=/data/local/tmp \
+            -Dinit-script=module \
+            -Druntime-path=/data/share/tmp \
             -Dstrip=true \
             -Dd_lto=true \
             -Dlog-path=log/lxc \
-            -Ddata-path=/data/share/lib/lxc \
+            -Ddata-path=lib/lxc \
             --localstatedir=/data/share/var \
             -Db_pie=false \
             -Dmemfd-rexec=false \
@@ -92,6 +92,12 @@ jobs:
         name: android-${{ github.event.inputs.target_arch || 'aarch64' }}-lxc
         path: /data/share/*
 
+    - name: Upload artifacts lxc-module
+      uses: actions/upload-artifact@v4.3.1
+      with:
+        name: android-lxc-module
+        path: lxc-module.zip
+
     - name: Create a TAR file for artifact
       run: |
         tar -czvf android-${{ github.event.inputs.target_arch || 'aarch64' }}-api30-lxc.tar.gz -C /data/share .
@@ -108,3 +114,4 @@ jobs:
         files: |
             android-${{ github.event.inputs.target_arch || 'aarch64' }}-api30-lxc.tar.gz
             android-${{ github.event.inputs.target_arch || 'aarch64' }}-api30-sysroot.tar.gz
+            lxc-module.zip
