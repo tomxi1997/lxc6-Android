@@ -110,6 +110,8 @@ srcconf.set_quoted('RUNTIME_PATH', runtimepath)
 srcconf.set_quoted('SBINDIR', sbindir)
 
 conf = configuration_data()
+conf.set('PREFIXDIR', prefixdir)
+conf.set('LIBDIR', libdir)
 conf.set('BINDIR', bindir)
 conf.set('LIBEXECDIR', libexecdir)
 conf.set('LOCALSTATEDIR', localstatedir)
@@ -327,6 +329,7 @@ endif
 sh = find_program('sh')
 date = find_program('date')
 git = find_program('git', required: false)
+zip = find_program('zip', required: false)
 time_epoch = run_command(sh, '-c', 'echo "$SOURCE_DATE_EPOCH"', check: true).stdout().strip()
 if time_epoch == '' and git.found() and run_command('test', '-e', '.git', check: false).returncode() == 0
     # If we're in a git repository, use the creation time of the latest git tag.
@@ -938,6 +941,7 @@ if want_install_init
     subdir('config/init/systemd')
     subdir('config/init/sysvinit')
     subdir('config/init/monitd')
+    subdir('config/init/module')
     subdir('config/sysconfig')
 endif
 if want_selinux

@@ -1,0 +1,6 @@
+id=lxc
+name=LXC-Daemon
+version=1.0.0
+versionCode=10001
+author=@Container-On-Android
+description=description

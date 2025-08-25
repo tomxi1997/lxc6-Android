@@ -1,0 +1,65 @@
+#!/bin/sh
+
+ui_print "- [I] Checking env..."
+
+if [ -n $KSU ]; then
+    ui_print "- [D] Su manager is KernelSU."
+fi
+
+if [ $ARCH = "arm64" ]; then
+    continue
+else
+    abort "- [E] Unsupported arch: $ARCH."
+fi
+
+if [ $API -ge 30 ]; then
+    continue
+else
+    ui_print "- [W] Func memfd_create() required API 30(R)."
+fi
+
+ui_print "- [D] Fetching download link..."
+
+DOWNLOAD_URLS=$(curl -s https://api.github.com/repos/Container-On-Android/lxc/releases/latest | grep browser_download_url | cut -d'"' -f4 | grep -E 'gz$')
+
+URL_LXC=$(echo "$DOWNLOAD_URLS" | sed -n '1p')
+URL_SYSROOT=$(echo "$DOWNLOAD_URLS" | sed -n '2p')
+
+if [ -z $URL_LXC ] && [ -z $URL_SHARE ]; then
+    abort "- [E] Error: URL_LXC: $URL_LXC URL_SHARE: $URL_SHARE."
+else
+    ui_print "- [D] Fetch ok..."
+fi
+
+ui_print "- [I] Downloading lxc..."
+
+wget -q $URL_LXC -O /data/local/tmp/lxc.tar.gz
+
+if [ $? -eq 0 ]; then
+    ui_print "- [I] Download lxc ok..."
+else
+    rm /data/local/tmp/lxc.tar.gz
+    abort "- [E] Failed to download lxc. ($URL_LXC)"
+fi
+
+ui_print "- [I] Downloading lxc-sysroot..."
+
+wget -q $URL_SYSROOT -O /data/local/tmp/lxc-sysroot.tar.gz
+
+if [ $? -eq 0 ]; then
+    ui_print "- [D] Download lxc-sysroot ok..."
+else
+    rm /data/local/tmp/lxc-sysroot.tar.gz
+    abort "- [E] Failed to download lxc-sysroot. ($URL_SYSROOT)"
+fi
+
+ui_print "- [I] Installing lxc..."
+mkdir -p @PREFIXDIR@
+mkdir -p /data/sysroot
+tar zxf /data/local/tmp/lxc.tar.gz -C @PREFIXDIR@
+tar zxf /data/local/tmp/lxc-sysroot.tar.gz -C /data/sysroot
+ui_print "- [I] OK!"
+
+ui_print "- [I] Clean!"
+rm /data/local/tmp/lxc.tar.gz
+rm /data/local/tmp/lxc-sysroot.tar.gz
