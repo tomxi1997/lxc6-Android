@@ -291,6 +291,7 @@ endif
 
 # Feature detection
 ## Android Log System.
+srcconf.set10('USE_ANDROID_LOG', false)
 if want_android_log
     if srcconf.get('IS_BIONIC') == 1
         liblog = cc.find_library('log', required: true)
