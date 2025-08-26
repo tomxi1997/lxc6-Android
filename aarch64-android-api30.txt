@@ -1,6 +1,6 @@
 [binaries]
-c = 'android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android30-clang'
-cpp = 'android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android30-clang++'
+c = 'android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang'
+cpp = 'android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang++'
 ar = 'android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar'
 as = 'android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-as'
 ld = 'android-ndk-r27c/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ld'
