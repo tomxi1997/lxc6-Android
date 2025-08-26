@@ -74,7 +74,7 @@ jobs:
             -Dopenssl=true \
             -Ddbus=false \
             -Dandroid-log=true \
-            --cross-file aarch64-android-api30.txt
+            --cross-file aarch64-android-api24.txt
 
         meson compile -C build
         sudo /usr/local/bin/ninja -C build install
