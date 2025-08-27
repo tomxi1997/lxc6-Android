@@ -66,6 +66,14 @@
 #include "utils.h"
 #include "uuid.h"
 
+// 解决 Android 环境 hasmntopt 未声明问题
+#ifndef __hasmntopt_declared
+#define __hasmntopt_declared
+#include <mntent.h>  // 先包含标准头文件（若已存在可跳过）
+// 手动声明 hasmntopt 函数（适配 musl libc 和 Android 环境）
+char *hasmntopt(const struct mntent *mnt, const char *opt);
+#endif
+
 #ifdef MAJOR_IN_MKDEV
 #include <sys/mkdev.h>
 #endif
