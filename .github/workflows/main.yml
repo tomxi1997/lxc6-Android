@@ -52,7 +52,7 @@ jobs:
         
     - name: Build lxc
       run: |
-        sed -i "s|android-ndk-r27c|$ANDROID_NDK_HOME|g" aarch64-android-api24.txt
+        sed -i "s|android-ndk-r28c|$ANDROID_NDK_HOME|g" aarch64-android-api24.txt
         #export PKG_CONFIG_PATH=/data/sysroot/lib/pkgconfig:/data/sysroot/lib64/pkgconfig:$PKG_CONFIG_PATH
 
         meson setup build \
