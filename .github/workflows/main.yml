@@ -53,7 +53,7 @@ jobs:
     - name: Build lxc
       run: |
         sed -i "s|android-ndk-r27c|$ANDROID_NDK_HOME|g" aarch64-android-api24.txt
-        export PKG_CONFIG_PATH=/data/sysroot/lib/pkgconfig:/data/sysroot/lib64/pkgconfig:$PKG_CONFIG_PATH
+        #export PKG_CONFIG_PATH=/data/sysroot/lib/pkgconfig:/data/sysroot/lib64/pkgconfig:$PKG_CONFIG_PATH
 
         meson setup build \
             -Dprefix=/data/share \
@@ -67,11 +67,11 @@ jobs:
             -Db_pie=false \
             -Dmemfd-rexec=false \
             --buildtype release \
-            -Dcapabilities=true \
-            -Dseccomp=true \
-            -Dselinux=true \
-            -Dapparmor=true \
-            -Dopenssl=true \
+            -Dcapabilities=false \
+            -Dseccomp=false \
+            -Dselinux=false \
+            -Dapparmor=false \
+            -Dopenssl=false \
             -Ddbus=false \
             -Dandroid-log=true \
             --cross-file aarch64-android-api24.txt
