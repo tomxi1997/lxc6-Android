@@ -5,7 +5,7 @@ on:
       ndk_version:
         description: 'Android NDK version'
         required: false
-        default: 'r27c'
+        default: 'r28c'
 
 jobs:
   build:
