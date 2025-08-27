@@ -99,7 +99,7 @@ static void lxc_rexec_as_memfd(char **argv, char **envp, const char *memfd_name)
 #if IS_BIONIC && __ANDROID_API__ >= 30
 	off_t fd_size = -1;
 #else
-	#error "memfd_create() not implemented under Android 30"
+	#warning "memfd_create() not implemented under Android 30"
 	struct stat st = {0};
 #endif
 
@@ -127,6 +127,7 @@ static void lxc_rexec_as_memfd(char **argv, char **envp, const char *memfd_name)
 
 	/* sendfile() handles up to 2GB. */
 #if IS_BIONIC
+    off_t fd_size;
 	fd_size = lseek(fd, 0, SEEK_END);
 	if (fd_size < 0) {
 		return;
