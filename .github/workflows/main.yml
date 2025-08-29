@@ -100,8 +100,8 @@ jobs:
 
     - name: Create a TAR file for artifact
       run: |
-        tar -czvf android-${{ github.event.inputs.target_arch || 'aarch64' }}-api30-lxc.tar.gz -C /data/share .
-        tar -czvf android-${{ github.event.inputs.target_arch || 'aarch64' }}-api30-sysroot.tar.gz -C /data/sysroot .
+        tar -czvf android-${{ github.event.inputs.target_arch || 'aarch64' }}-api24-lxc.tar.gz -C /data/share .
+        tar -czvf android-${{ github.event.inputs.target_arch || 'aarch64' }}-api24-sysroot.tar.gz -C /data/sysroot .
     
     - name: Create Release and Upload Release Asset
       uses: softprops/action-gh-release@v1
@@ -112,6 +112,6 @@ jobs:
         draft: false
         prerelease: false
         files: |
-            android-${{ github.event.inputs.target_arch || 'aarch64' }}-api30-lxc.tar.gz
-            android-${{ github.event.inputs.target_arch || 'aarch64' }}-api30-sysroot.tar.gz
+            android-${{ github.event.inputs.target_arch || 'aarch64' }}-api24-lxc.tar.gz
+            android-${{ github.event.inputs.target_arch || 'aarch64' }}-api24-sysroot.tar.gz
             lxc-module.zip
