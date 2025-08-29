@@ -41,6 +41,7 @@ jobs:
         libapparmor="https://github.com/tomxi1997/libapparmor-dev_Android/releases/download/2025-08-29/android-aarch64-libapparmor-dev.zip"
         libapparmor_file="android-aarch64-libapparmor-dev.zip"
         wget -q ${libapparmor} && sudo unzip -q -o ${libapparmor_file} -d / && echo "3/5 完成：${libapparmor} -> ${libapparmor_file}"
+        
         libseccomp="https://github.com/tomxi1997/libseccomp-dev/releases/download/2025-08-29/android-aarch64-libseccomp-dev.zip"
         libseccomp_file="android-aarch64-libseccomp-dev.zip"
         wget -q ${libseccomp} && sudo unzip -q -o ${libseccomp_file} -d / && echo "4/5 完成：${libseccomp} -> ${libseccomp_file}"
