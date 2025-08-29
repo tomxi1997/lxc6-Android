@@ -46,6 +46,11 @@ jobs:
         libseccomp_file="android-aarch64-libseccomp-dev.zip"
         wget -q ${libseccomp} && sudo unzip -q -o ${libseccomp_file} -d / && echo "4/5 完成：${libseccomp} -> ${libseccomp_file}"
         
+        libselinux="https://github.com/tomxi1997/libselinux-dev_Android/releases/download/2025-08-29/android-aarch64-libselinux-dev.zip"
+        libselinux_file="android-aarch64-libselinux-dev.zip"
+        wget -q ${libselinux} && sudo unzip -q -o ${libselinux_file} -d / && echo "5/5 完成 ${libselinux} ${libselinux_file}"
+        
+        
         
     - name: Build lxc
       run: |
@@ -65,7 +70,7 @@ jobs:
             --buildtype release \
             -Dcapabilities=true \
             -Dseccomp=true \
-            -Dselinux=false -Dmemfd-rexec=false \
+            -Dselinux=true -Dmemfd-rexec=false \
             -Dapparmor=true \
             -Dopenssl=true \
             -Ddbus=false \
