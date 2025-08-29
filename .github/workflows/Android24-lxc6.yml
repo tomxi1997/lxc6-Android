@@ -1,0 +1,112 @@
+name: Android-24-LXC_arm64-Builds
+on:
+  workflow_dispatch:
+    inputs:
+      ndk_version:
+        description: 'Android NDK version'
+        required: false
+        default: 'r27c'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Android NDK
+      uses: nttld/setup-ndk@v1
+      with:
+        ndk-version: ${{ github.event.inputs.ndk_version || 'r27c' }}
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get install -y -qq build-essential pipx python3-venv pkg-config cmake docbook2x \
+        python3-pip pipx jq
+        sudo npm install -g conventional-changelog-cli
+        conventional-changelog -i CHANGELOG.md -s
+        pipx ensurepath
+        pipx install meson==0.61
+        pipx install ninja
+
+    - name: Download Dependencies 
+      run: |
+        libssl="https://github.com/tomxi1997/libopenssl-dev_Android/releases/download/2025-08-29/android-aarch64-libssl-dev.zip"
+        libssl_file="android-aarch64-libssl-dev.zip"
+        wget -q ${libssl} && sudo unzip -q -o ${libssl_file} -d / && echo "1/5 完成：${libssl} -> ${libssl_file}"
+
+        libcap="https://github.com/tomxi1997/AndroidLibcapBuild/releases/download/2025-08-29/android-aarch64-libcap-dev.zip"
+        libcap_file="android-aarch64-libcap-dev.zip"
+        wget -q ${libcap} && sudo unzip -q -o ${libcap_file} -d / && echo "2/5 完成：${libcap} -> ${libcap_file}"
+        
+        libapparmor="https://github.com/tomxi1997/libapparmor-dev_Android/releases/download/2025-08-29/android-aarch64-libapparmor-dev.zip"
+        libapparmor_file="android-aarch64-libapparmor-dev.zip"
+        wget -q ${libapparmor} && sudo unzip -q -o ${libapparmor_file} -d / && echo "3/5 完成：${libapparmor} -> ${libapparmor_file}"
+        libseccomp="https://github.com/tomxi1997/libseccomp-dev/releases/download/2025-08-29/android-aarch64-libseccomp-dev.zip"
+        libseccomp_file="android-aarch64-libseccomp-dev.zip"
+        wget -q ${libseccomp} && sudo unzip -q -o ${libseccomp_file} -d / && echo "4/5 完成：${libseccomp} -> ${libseccomp_file}"
+        
+        
+    - name: Build lxc
+      run: |
+        sed -i "s|android-ndk-r27c|$ANDROID_NDK_HOME|g" aarch64-android-api24.txt
+        export PKG_CONFIG_PATH=/data/sysroot/lib/pkgconfig:/data/sysroot/lib64/pkgconfig:$PKG_CONFIG_PATH
+
+        meson setup build \
+            -Dprefix=/data/share \
+            -Dinit-script=module \
+            -Druntime-path=/data/share/tmp \
+            -Dstrip=true \
+            -Dd_lto=true \
+            -Dlog-path=log/lxc \
+            -Ddata-path=lib/lxc \
+            --localstatedir=/data/share/var \
+            -Db_pie=false \
+            --buildtype release \
+            -Dcapabilities=true \
+            -Dseccomp=true \
+            -Dselinux=false -Dmemfd-rexec=false \
+            -Dapparmor=true \
+            -Dopenssl=true \
+            -Ddbus=false \
+            -Dandroid-log=true \
+            --cross-file aarch64-android-api24.txt
+
+        meson compile -C build
+        sudo /usr/local/bin/ninja -C build install
+        echo "RELEASE_TAG=$(meson introspect meson.build --projectinfo | jq -r '.version')-$(git log -1 --format=%h)" >> $GITHUB_ENV
+
+    - name: Upload artifacts sysroot
+      uses: actions/upload-artifact@v4.3.1
+      with:
+        name: android-${{ github.event.inputs.target_arch || 'aarch64' }}-deps
+        path: /data/sysroot/*
+
+    - name: Upload artifacts lxc
+      uses: actions/upload-artifact@v4.3.1
+      with:
+        name: android-${{ github.event.inputs.target_arch || 'aarch64' }}-lxc
+        path: /data/share/*
+
+    - name: Upload artifacts lxc-module
+      uses: actions/upload-artifact@v4.3.1
+      with:
+        name: android-lxc-module
+        path: lxc-module.zip
+
+    - name: Create a TAR file for artifact
+      run: |
+        tar -czvf android-${{ github.event.inputs.target_arch || 'aarch64' }}-api24-lxc.tar.gz -C /data/share .
+        tar -czvf android-${{ github.event.inputs.target_arch || 'aarch64' }}-api24-sysroot.tar.gz -C /data/sysroot .
+    
+    - name: Create Release and Upload Release Asset
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ env.RELEASE_TAG }}
+        name: Release ${{ env.RELEASE_TAG }}
+        body_path: CHANGELOG.md
+        draft: false
+        prerelease: false
+        files: |
+            android-${{ github.event.inputs.target_arch || 'aarch64' }}-api24-lxc.tar.gz
+            android-${{ github.event.inputs.target_arch || 'aarch64' }}-api24-sysroot.tar.gz
+            lxc-module.zip
