@@ -16,7 +16,7 @@ jobs:
     - name: Set up Android NDK
       uses: nttld/setup-ndk@v1
       with:
-        ndk-version: ${{ github.event.inputs.ndk_version || 'r27c' }}
+        ndk-version: ${{ github.event.inputs.ndk_version || 'r28c' }}
 
     - name: Install dependencies
       run: |
