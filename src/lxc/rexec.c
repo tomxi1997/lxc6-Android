@@ -11,7 +11,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/types.h>
-
+#include <sys/syscall.h>  // 新增：引入syscall头文件
 
 #include "file_utils.h"
 #include "macro.h"
@@ -24,14 +24,34 @@
 #define LXC_MEMFD_REXEC_SEALS \
 	(F_SEAL_SEAL | F_SEAL_SHRINK | F_SEAL_GROW | F_SEAL_WRITE)
 
-// 2. 新增：API<30的memfd_create兼容实现（用shm_open模拟）
+// 2. 核心修改：用syscall直接调用shm_open/shm_unlink的内核接口（无libc符号依赖）
 #if IS_BIONIC && __ANDROID_API__ < 30
-// 清除syscall_wrappers.h的memfd_create宏重定义
-#undef memfd_create
-// 显式声明函数（匹配POSIX标准签名，避免隐式定义错误）
-extern int shm_open(const char *name, int oflag, mode_t mode);
-extern int shm_unlink(const char *name);
+#undef memfd_create  
+// 定义Android内核的shm相关系统调用号（不同架构统一，无需区分）
+#define __NR_shm_open 293
+#define __NR_shm_unlink 294
 
+// 替代libc的shm_open：直接syscall调用内核
+static int shm_open_syscall(const char *name, int oflag, mode_t mode) {
+    long ret = syscall(__NR_shm_open, name, oflag, mode);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return ret;
+}
+
+// 替代libc的shm_unlink：直接syscall调用内核
+static int shm_unlink_syscall(const char *name) {
+    long ret = syscall(__NR_shm_unlink, name);
+    if (ret < 0) {
+        errno = -ret;
+        return -1;
+    }
+    return ret;
+}
+
+// 原memfd_create_compat逻辑不变，仅替换shm_open/shm_unlink为syscall版本
 static int memfd_create_compat(const char *name, unsigned int flags) {
     (void)flags;
     char shm_name[64];
@@ -40,11 +60,11 @@ static int memfd_create_compat(const char *name, unsigned int flags) {
     if (ret < 0 || ret >= (int)sizeof(shm_name))
         return -EINVAL;
 
-    int fd = shm_open(shm_name, O_RDWR | O_CREAT | O_EXCL | O_CLOEXEC, 0600);
+    int fd = shm_open_syscall(shm_name, O_RDWR | O_CREAT | O_EXCL | O_CLOEXEC, 0600);
     if (fd < 0)
         return -errno;
 
-    shm_unlink(shm_name);
+    shm_unlink_syscal(shm_name);
     return fd;
 }
 #define memfd_create(name, flags) memfd_create_compat(name, flags)
