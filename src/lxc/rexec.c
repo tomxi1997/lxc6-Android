@@ -12,6 +12,10 @@
 #include <fcntl.h>
 #include <sys/types.h>
 
+// 1. 新增：定义_POSIX_C_SOURCE确保shm_open/shm_unlink声明（解决隐式函数错误）
+#define _POSIX_C_SOURCE 200112L
+#include <sys/mman.h>  // 重新包含以触发声明
+
 #include "file_utils.h"
 #include "macro.h"
 #include "memory_utils.h"
@@ -25,6 +29,7 @@
 
 // 2. 新增：API<30的memfd_create兼容实现（用shm_open模拟）
 #if IS_BIONIC && __ANDROID_API__ < 30
+#undef memfd_create  // 清除syscall_wrappers.h中的#define memfd_create memfd_create_lxc
 static int memfd_create_compat(const char *name, unsigned int flags) {
     (void)flags;
     char shm_name[64];
