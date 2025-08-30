@@ -70,7 +70,7 @@ jobs:
             --buildtype release \
             -Dcapabilities=true \
             -Dseccomp=true \
-            -Dselinux=true -Dmemfd-rexec=false \
+            -Dselinux=true \
             -Dapparmor=true \
             -Dopenssl=true \
             -Ddbus=false \
