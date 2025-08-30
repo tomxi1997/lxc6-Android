@@ -73,6 +73,7 @@ jobs:
             -Dselinux=true \
             -Dapparmor=true \
             -Dopenssl=true \
+            -Dmemfd-rexec=true \
             -Ddbus=false \
             -Dandroid-log=true \
             --cross-file aarch64-android-api24.txt
