@@ -64,7 +64,7 @@ static int memfd_create_compat(const char *name, unsigned int flags) {
     if (fd < 0)
         return -errno;
 
-    shm_unlink_syscal(shm_name);
+    shm_unlink_syscall(shm_name);
     return fd;
 }
 #define memfd_create(name, flags) memfd_create_compat(name, flags)
