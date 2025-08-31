@@ -38,3 +38,9 @@ if srcconf.get('HAVE_STRCHRNUL') == 0
         'strchrnul.c',
         'strchrnul.h')
 endif
+
+if srcconf.get('HAVE_HASMNTOPT') == 0
+    include_sources += files(
+        'hasmntopt.c',
+        'hasmntopt.h')
+endif

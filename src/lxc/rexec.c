@@ -96,10 +96,9 @@ static void lxc_rexec_as_memfd(char **argv, char **envp, const char *memfd_name)
 		       tmpfd = -EBADF;
 	int ret;
 	ssize_t bytes_sent = 0;
-#if IS_BIONIC && __ANDROID_API__ >= 30
+#if IS_BIONIC
 	off_t fd_size = -1;
 #else
-	#error "memfd_create() not implemented under Android 30"
 	struct stat st = {0};
 #endif
 
