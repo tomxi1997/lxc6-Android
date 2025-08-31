@@ -90,6 +90,10 @@
 #include "strchrnul.h"
 #endif
 
+#if !HAVE_HASMNTOPT
+#include "hasmntopt.h"
+#endif
+
 lxc_log_define(conf, lxc);
 
 /*
