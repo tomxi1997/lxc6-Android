@@ -57,6 +57,7 @@ jobs:
         git clone https://github.com/Container-On-Android/lxc.git lxc
         cp aarch64-android-api24.txt ./lxc
         cd lxc
+        sed -i "s|android-ndk-r27c|$ANDROID_NDK_HOME|g" aarch64-android-api24.txt
         #sed -i.bak -e 's/aarch64-linux-android30-clang/aarch64-linux-android24-clang/g' -e 's/aarch64-linux-android30-clang++/aarch64-linux-android24-clang++/g' aarch64-android-api30.txt
         export PKG_CONFIG_PATH=/data/sysroot/lib/pkgconfig:/data/sysroot/lib64/pkgconfig:$PKG_CONFIG_PATH
 
